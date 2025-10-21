@@ -1,17 +1,15 @@
 @charset "utf-8";
-
 *,
 ::before,
-::after {
+::after{
 	margin: 0;
 	padding: 0;
-	-webkit-tap-highlight-color: transparent;
+	-webkit-tap-highlight-color:transparent;
 	-webkit-box-sizing: border-box;
 	box-sizing: border-box;
 }
-
 .clearfix::before,
-.clearfix::after {
+.clearfix::after{
 	content: "";
 	height: 0;
 	line-height: 0;
@@ -19,22 +17,42 @@
 	visibility: hidden;
 	clear: both;
 }
-
-.row {
+.row{
 	width: 80%;
 	margin: 0 auto;
 	border: 2px solid red;
 }
-
-[class^="col"] {
+[class^="col"]{
 	float: left;
 	background-color: aqua;
 }
-
-.col1 {
-	width: 20%;
+.col1{
+	width: 100%;
+	background-color: red;
+	height: 200px;
+}
+.col2{
+	width: 33.33%;
 	border: 1px solid darkgreen;
 	text-align: center;
 	height: 50px;
 	line-height: 50px;
+}
+.col3{
+	width: 33.33%;
+	border: 1px solid darkgreen;
+	text-align: center;
+	height: 50px;
+	line-height: 50px;
+	background-color: aquamarine;
+}
+@media screen and (max-width:575px){
+	.col2{
+		width: 100%;
+		float: none;
+	}
+	.col3{
+		width: 100%;
+		float: none;
+	}
 }
