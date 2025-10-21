@@ -47,11 +47,15 @@
 	background-color: aquamarine;
 }
 @media screen and (max-width:575px){
-	.col2{
+	/* .col2{
 		width: 100%;
 		float: none;
 	}
 	.col3{
+		width: 100%;
+		float: none;
+	} */
+	[class^="col"]{
 		width: 100%;
 		float: none;
 	}
