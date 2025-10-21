@@ -1,6 +1,40 @@
 @charset "utf-8";
-.row{
+
+*,
+::before,
+::after {
+	margin: 0;
+	padding: 0;
+	-webkit-tap-highlight-color: transparent;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.clearfix::before,
+.clearfix::after {
+	content: "";
+	height: 0;
+	line-height: 0;
+	display: block;
+	visibility: hidden;
+	clear: both;
+}
+
+.row {
 	width: 80%;
 	margin: 0 auto;
-	border: 1px solid red;
+	border: 2px solid red;
+}
+
+[class^="col"] {
+	float: left;
+	background-color: aqua;
+}
+
+.col1 {
+	width: 20%;
+	border: 1px solid darkgreen;
+	text-align: center;
+	height: 50px;
+	line-height: 50px;
 }
