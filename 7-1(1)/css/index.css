@@ -18,9 +18,10 @@
 	clear: both;
 }
 
-header{
+header,footer{
 	width: 100%;
 	background-color: blue;
+	height: 50px;
 }
 .banner{
 	width: 90%;
@@ -35,6 +36,7 @@ header{
 	float: left;
 	background-color: aqua;
 	height: 300px;
+	text-align: center;
 }
 .col1{
 	width: 100%;
@@ -56,6 +58,12 @@ header{
 	line-height: 50px;
 	background-color: aquamarine;
 }
+.col4{
+	width: 16.65%;
+	background: pink;
+	height: 80px;
+	border: 1px solid blue;
+}
 @media screen and (max-width:575px){
 	/* .col2{
 		width: 100%;
@@ -68,5 +76,15 @@ header{
 	[class^="col"]{
 		width: 100%;
 		float: none;
+	}
+	.col4{
+		width: 50%;
+		float: left;
+	}
+	.row{
+		width: 100%;
+	}
+	.banner{
+		width: 100%;
 	}
 }
