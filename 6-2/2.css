@@ -1,0 +1,60 @@
+@charset "utf-8";
+
+body {
+	padding: 0;
+	margin: 0;
+}
+
+.container {
+	background-color: red;
+	height: 500px;
+	margin: 0 auto;
+}
+
+@media screen and (max-width:575px) {
+	.container {
+		background-color: blue;
+		margin: 0 auto;
+		width: 100%;
+	}
+}
+
+@media screen and (min-width:576px) {
+	.container {
+		background-color: green;
+		margin: 0 auto;
+		width: 540px;
+	}
+}
+
+@media screen and (min-width:768px) {
+	.container {
+		background-color: green;
+		margin: 0 auto;
+		width: 720px;
+	}
+}
+
+@media screen and (min-width:992px) {
+	.container {
+		background-color: green;
+		margin: 0 auto;
+		width: 960px;
+	}
+}
+
+@media screen and (min-width:1200px) {
+	.container {
+		background-color: green;
+		margin: 0 auto;
+		width: 1140px;
+	}
+}
+
+@media screen and (min-width:1400px) {
+	.container {
+		background-color: green;
+		margin: 0 auto;
+		width: 1320px;
+	}
+}
