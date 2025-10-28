@@ -1,0 +1,51 @@
+@charset "utf-8";
+*,
+::before,
+::after{
+	margin: 0;
+	padding: 0;
+	-webkit-tap-highlight-color:transparent;
+	-webkit-box-sizing: border-box;
+	box-sizing: border-box;
+}
+.clearfix::before,
+.clearfix::after{
+	content: "";
+	height: 0;
+	line-height: 0;
+	display: block;
+	visibility: hidden;
+	clear: both;
+}
+
+.row{
+	width: 80%;
+	margin: 0 auto;
+	border: 2px solid red;
+}
+[class^="col"]{
+	float: left;
+	background-color: skyblue;
+	height: 300px;
+	text-align: left;  /* 改为 left，原来是 center */
+	line-height: normal;  /* 改为 normal，原来是 50px */
+	padding: 0;  /* 可选：添加内边距如 padding: 10px; 让文字不贴边 */
+}
+.col2{
+	width: 33.33%;
+	border: 1px solid darkgreen;
+}
+.col3{
+	width: 33.33%;
+	border: 1px solid darkgreen;
+	background-color: skyblue;
+}
+@media screen and (max-width:575px){
+	[class^="col"]{
+		width: 100%;
+		float: none;
+	}
+	.row{
+		width: 100%;
+	}
+}
