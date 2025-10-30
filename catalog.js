@@ -61,6 +61,9 @@ function renderProjects(filteredProjects = projects) {
             <div class="project-icon">${project.icon}</div>
             <h2 class="project-title">${project.name}</h2>
             <p class="project-description">${project.description}</p>
+            <button class="view-code-btn" onclick="event.stopPropagation(); viewCode('${project.id}')">
+                📄 查看源码
+            </button>
             <a href="${project.path}" class="project-link">
                 打开项目 →
             </a>
@@ -141,6 +144,23 @@ document.addEventListener('DOMContentLoaded', () => {
     renderProjects();
     setupSearch();
     updateTimestamp();
+    initAI();
+    
+    // Setup modal close button
+    const closeBtn = document.querySelector('.close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+    }
+    
+    // Close modal when clicking outside
+    const modal = document.getElementById('codeModal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
     
     // 添加键盘快捷键
     document.addEventListener('keydown', (e) => {
@@ -150,12 +170,17 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('searchInput').focus();
         }
         
-        // 按 ESC 清空搜索
+        // 按 ESC 清空搜索或关闭模态框
         if (e.key === 'Escape') {
-            const searchInput = document.getElementById('searchInput');
-            searchInput.value = '';
-            searchInput.blur();
-            renderProjects();
+            const modal = document.getElementById('codeModal');
+            if (modal.classList.contains('show')) {
+                closeModal();
+            } else {
+                const searchInput = document.getElementById('searchInput');
+                searchInput.value = '';
+                searchInput.blur();
+                renderProjects();
+            }
         }
     });
 });
@@ -167,3 +192,168 @@ function autoDiscoverProjects() {
     console.log('使用静态项目配置');
     return projects;
 }
+
+// Code Viewer Functions
+function viewCode(projectId) {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    const modal = document.getElementById('codeModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const fileTabs = document.getElementById('fileTabs');
+    const codeContent = document.getElementById('codeContent');
+    
+    modalTitle.textContent = `${project.name} - 源代码`;
+    
+    // Create file tabs
+    const htmlFiles = project.files.filter(f => 
+        f.endsWith('.html') || f.endsWith('.css') || f.endsWith('.js')
+    );
+    
+    fileTabs.innerHTML = htmlFiles.map((file, index) => `
+        <button class="file-tab ${index === 0 ? 'active' : ''}" 
+                onclick="loadFile('${project.id}', '${file}')">
+            ${file}
+        </button>
+    `).join('');
+    
+    // Load first file
+    if (htmlFiles.length > 0) {
+        loadFile(project.id, htmlFiles[0]);
+    }
+    
+    modal.classList.add('show');
+}
+
+async function loadFile(projectId, fileName) {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    const codeContent = document.getElementById('codeContent');
+    
+    // Update active tab
+    document.querySelectorAll('.file-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.textContent.trim() === fileName) {
+            tab.classList.add('active');
+        }
+    });
+    
+    try {
+        // Construct file path
+        let filePath = project.path.substring(0, project.path.lastIndexOf('/') + 1) + fileName;
+        
+        const response = await fetch(filePath);
+        if (!response.ok) throw new Error('Failed to load file');
+        
+        const code = await response.text();
+        
+        // Determine language for syntax highlighting
+        let language = 'markup';
+        if (fileName.endsWith('.css')) language = 'css';
+        if (fileName.endsWith('.js')) language = 'javascript';
+        
+        // Apply syntax highlighting
+        if (window.highlightCode) {
+            codeContent.innerHTML = highlightCode(code, language);
+        } else {
+            codeContent.textContent = code;
+        }
+    } catch (error) {
+        codeContent.textContent = `// 无法加载文件: ${fileName}\n// 错误: ${error.message}`;
+        codeContent.className = 'language-markup';
+    }
+}
+
+function closeModal() {
+    const modal = document.getElementById('codeModal');
+    modal.classList.remove('show');
+}
+
+// AI Assistant Functions
+let aiMessages = [];
+let isAIEnabled = false;
+
+function initAI() {
+    const aiToggle = document.getElementById('aiToggle');
+    const aiPanel = document.getElementById('aiPanel');
+    const aiClose = document.querySelector('.ai-close');
+    const aiSend = document.getElementById('aiSend');
+    const aiInput = document.getElementById('aiInput');
+    
+    aiToggle.addEventListener('click', () => {
+        const isVisible = aiPanel.style.display === 'block';
+        aiPanel.style.display = isVisible ? 'none' : 'block';
+        
+        if (!isVisible && aiMessages.length === 0) {
+            addAIMessage('ai', '你好！我是 AI 助手，由华为云 DeepSeek R1 64K 提供支持。我可以帮你了解这个项目目录中的项目，回答关于代码的问题。有什么可以帮你的吗？');
+        }
+    });
+    
+    aiClose.addEventListener('click', () => {
+        aiPanel.style.display = 'none';
+    });
+    
+    aiSend.addEventListener('click', sendAIMessage);
+    aiInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendAIMessage();
+        }
+    });
+}
+
+function addAIMessage(type, message) {
+    const messagesContainer = document.getElementById('aiMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `ai-message ${type}`;
+    messageDiv.textContent = message;
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    aiMessages.push({ type, message });
+}
+
+async function sendAIMessage() {
+    const aiInput = document.getElementById('aiInput');
+    const message = aiInput.value.trim();
+    
+    if (!message) return;
+    
+    addAIMessage('user', message);
+    aiInput.value = '';
+    
+    // Simulate AI response (replace with actual API call)
+    try {
+        const response = await getAIResponse(message);
+        addAIMessage('ai', response);
+    } catch (error) {
+        addAIMessage('ai', '抱歉，AI 服务暂时不可用。请稍后再试。');
+    }
+}
+
+async function getAIResponse(message) {
+    // This is a placeholder for the actual Huawei Cloud DeepSeek API integration
+    // For now, provide context-aware responses
+    
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('项目') || lowerMessage.includes('有哪些')) {
+        return `目前项目目录中包含 ${projects.length} 个项目：\n${projects.map(p => `• ${p.name} - ${p.description}`).join('\n')}`;
+    }
+    
+    if (lowerMessage.includes('如何') || lowerMessage.includes('怎么')) {
+        return '你可以点击项目卡片打开项目预览，或点击"查看源码"按钮查看项目的源代码。使用顶部的搜索框可以快速查找项目。';
+    }
+    
+    if (lowerMessage.includes('源码') || lowerMessage.includes('代码')) {
+        return '每个项目卡片都有"查看源码"按钮，点击后可以看到该项目的 HTML、CSS 和 JavaScript 文件。你可以在不同文件之间切换查看。';
+    }
+    
+    if (lowerMessage.includes('github') || lowerMessage.includes('gitee')) {
+        return '项目托管在 GitHub 和 Gitee 上。GitHub 地址：https://github.com/zengweiying66/Mobile-Web，Gitee 镜像（适合国内访问）：https://gitee.com/zxcvbnm668813/mobile-web';
+    }
+    
+    return '感谢你的提问！我可以帮你了解项目列表、如何查看源代码、项目仓库地址等信息。请告诉我你想了解什么？';
+}
+
+// Make viewCode function global
+window.viewCode = viewCode;

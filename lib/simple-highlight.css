@@ -1,0 +1,68 @@
+/* Simple syntax highlighting theme */
+.code-container {
+    background: #2d2d2d;
+    border-radius: 10px;
+    overflow: auto;
+    max-height: 60vh;
+}
+
+.code-container pre {
+    margin: 0;
+    padding: 20px;
+    color: #ccc;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.code-container code {
+    color: #ccc;
+}
+
+/* Token colors */
+.token.tag,
+.token.tag-name {
+    color: #f92672;
+}
+
+.token.attr-name {
+    color: #a6e22e;
+}
+
+.token.attr-value {
+    color: #e6db74;
+}
+
+.token.comment {
+    color: #75715e;
+    font-style: italic;
+}
+
+.token.selector {
+    color: #f92672;
+}
+
+.token.property {
+    color: #66d9ef;
+}
+
+.token.value {
+    color: #e6db74;
+}
+
+.token.keyword {
+    color: #f92672;
+    font-weight: bold;
+}
+
+.token.string {
+    color: #e6db74;
+}
+
+.token.number {
+    color: #ae81ff;
+}
+
+.token.function {
+    color: #a6e22e;
+}
