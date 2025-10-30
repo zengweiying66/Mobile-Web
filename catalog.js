@@ -57,11 +57,11 @@ function renderProjects(filteredProjects = projects) {
     }
     
     projectList.innerHTML = filteredProjects.map(project => `
-        <div class="project-card" onclick="openProject('${project.path}')">
+        <div class="project-card" data-path="${project.path}" tabindex="0" role="button" aria-label="打开 ${project.name}">
             <div class="project-icon">${project.icon}</div>
             <h2 class="project-title">${project.name}</h2>
             <p class="project-description">${project.description}</p>
-            <a href="${project.path}" class="project-link" onclick="event.stopPropagation()">
+            <a href="${project.path}" class="project-link">
                 打开项目 →
             </a>
             <div class="project-meta">
@@ -72,6 +72,26 @@ function renderProjects(filteredProjects = projects) {
             </div>
         </div>
     `).join('');
+    
+    // Add event listeners for keyboard and click navigation
+    projectList.querySelectorAll('.project-card').forEach(card => {
+        const path = card.getAttribute('data-path');
+        
+        // Handle clicks on the card (but not on the link)
+        card.addEventListener('click', (e) => {
+            if (e.target.tagName !== 'A') {
+                openProject(path);
+            }
+        });
+        
+        // Handle keyboard navigation
+        card.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openProject(path);
+            }
+        });
+    });
 }
 
 // 打开项目
@@ -135,8 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // 自动扫描功能（可选）- 用于未来自动发现新项目
-async function autoDiscoverProjects() {
-    // 这个功能需要服务器端支持
+function autoDiscoverProjects() {
+    // 这个功能需要服务器端支持或文件系统API
     // 当前版本使用静态配置
     console.log('使用静态项目配置');
+    return projects;
 }
