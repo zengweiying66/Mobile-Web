@@ -67,6 +67,9 @@ function renderProjects(filteredProjects = projects) {
             <a href="${project.path}" class="project-link">
                 打开项目 →
             </a>
+            <button class="view-repo-btn" onclick="event.stopPropagation(); viewRepository('${project.id}')">
+                🔗 查看源代码
+            </button>
             <div class="project-meta">
                 <span class="file-count">
                     📁 ${project.files.length} 个文件
@@ -158,6 +161,16 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 closeModal();
+            }
+        });
+    }
+    
+    // Setup repository modal
+    const repoModal = document.getElementById('repoModal');
+    if (repoModal) {
+        repoModal.addEventListener('click', (e) => {
+            if (e.target === repoModal) {
+                closeRepoModal();
             }
         });
     }
@@ -355,5 +368,43 @@ async function getAIResponse(message) {
     return '感谢你的提问！我可以帮你了解项目列表、如何查看源代码、项目仓库地址等信息。请告诉我你想了解什么？';
 }
 
-// Make viewCode function global
+// Repository path mapping
+const repoPathMap = {
+    '6-2': '6-2',
+    '7-1': '7-1(1)',
+    '7-2': '7-2(1)',
+    '8-1': '8-1(1)',
+    'shopM': 'shopM'
+};
+
+// View repository function
+function viewRepository(projectId) {
+    const modal = document.getElementById('repoModal');
+    const modalTitle = document.getElementById('repoModalTitle');
+    const githubLink = document.getElementById('githubRepoLink');
+    const giteeLink = document.getElementById('giteeRepoLink');
+    
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    modalTitle.textContent = `${project.name} - 选择代码仓库`;
+    
+    // Get the repository path
+    const repoPath = repoPathMap[projectId] || projectId;
+    
+    // Set repository links
+    githubLink.href = `https://github.com/zengweiying66/Mobile-Web/tree/main/${repoPath}`;
+    giteeLink.href = `https://gitee.com/zxcvbnm668813/mobile-web/tree/master/${repoPath}`;
+    
+    modal.classList.add('show');
+}
+
+function closeRepoModal() {
+    const modal = document.getElementById('repoModal');
+    modal.classList.remove('show');
+}
+
+// Make functions global
 window.viewCode = viewCode;
+window.viewRepository = viewRepository;
+window.closeRepoModal = closeRepoModal;
