@@ -506,6 +506,133 @@ body {
     transform: scale(1.05);
 }
 
+.view-repo-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 20px;
+    background: white;
+    color: #764ba2;
+    border: 2px solid #764ba2;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.view-repo-btn:hover {
+    background: #764ba2;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Repository Modal Styles */
+.repo-modal-content {
+    max-width: 600px;
+}
+
+.repo-modal-body {
+    padding: 30px 25px;
+}
+
+.repo-modal-description {
+    text-align: center;
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 1.1em;
+}
+
+.repo-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.repo-option {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.repo-option:hover {
+    transform: translateX(5px);
+    border-color: #667eea;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.repo-option.github-option:hover {
+    border-color: #24292e;
+    background: #f6f8fa;
+}
+
+.repo-option.gitee-option:hover {
+    border-color: #c71d23;
+    background: #fff5f5;
+}
+
+.repo-option-icon {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 10px;
+    margin-right: 20px;
+}
+
+.github-option .repo-option-icon {
+    color: #24292e;
+}
+
+.gitee-option .repo-option-icon {
+    color: #c71d23;
+}
+
+.repo-option-content {
+    flex: 1;
+}
+
+.repo-option-content h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.3em;
+    color: #333;
+}
+
+.repo-option-content p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.repo-option-arrow {
+    font-size: 1.5em;
+    color: #999;
+    margin-left: 10px;
+    transition: all 0.3s ease;
+}
+
+.repo-option:hover .repo-option-arrow {
+    transform: translateX(5px);
+    color: #667eea;
+}
+
+.github-option:hover .repo-option-arrow {
+    color: #24292e;
+}
+
+.gitee-option:hover .repo-option-arrow {
+    color: #c71d23;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .header h1 {
@@ -528,6 +655,34 @@ body {
     .modal-content {
         width: 95%;
         max-height: 95vh;
+    }
+    
+    .repo-modal-content {
+        width: 95%;
+        max-width: 95vw;
+    }
+    
+    .repo-option {
+        padding: 15px;
+    }
+    
+    .repo-option-icon {
+        width: 50px;
+        height: 50px;
+        margin-right: 15px;
+    }
+    
+    .repo-option-icon svg {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .repo-option-content h3 {
+        font-size: 1.1em;
+    }
+    
+    .repo-option-content p {
+        font-size: 0.85em;
     }
     
     .ai-panel {
