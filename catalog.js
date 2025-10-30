@@ -96,7 +96,13 @@ function renderProjects(filteredProjects = projects) {
 
 // 打开项目
 function openProject(path) {
-    window.location.href = path;
+    // 验证路径是否来自已知的项目列表，防止潜在的XSS攻击
+    const validPaths = projects.map(p => p.path);
+    if (validPaths.includes(path)) {
+        window.location.href = path;
+    } else {
+        console.error('Invalid project path:', path);
+    }
 }
 
 // 搜索功能
