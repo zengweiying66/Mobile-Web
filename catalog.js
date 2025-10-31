@@ -29,8 +29,24 @@ const projects = [
         name: '8-1 项目',
         description: '高级 Web 应用开发项目',
         icon: '🚀',
-        path: '8-1(1)/8-1(1)/zy.html',
+        path: '8-1(1)/zy.html',
         files: ['zy.html']
+    },
+    {
+        id: '8-2',
+        name: '8-2 Flex布局',
+        description: 'Flex弹性布局实战示例',
+        icon: '📐',
+        path: '8-2(1)/1.html',
+        files: ['1.html']
+    },
+    {
+        id: 'travel',
+        name: '旅游网',
+        description: '移动端旅游网站项目，响应式布局',
+        icon: '✈️',
+        path: 'travel/index.html',
+        files: ['index.html', 'css/', 'images/']
     },
     {
         id: 'shopM',
@@ -374,7 +390,9 @@ const repoPathMap = {
     '7-1': '7-1(1)',
     '7-2': '7-2(1)',
     '8-1': '8-1(1)',
-    'shopM': 'shopM'
+    '8-2': '8-2(1)',
+    'shopM': 'shopM',
+    'travel': 'travel'
 };
 
 // View repository function
