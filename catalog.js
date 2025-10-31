@@ -277,17 +277,8 @@ async function loadFile(projectId, fileName) {
         
         const code = await response.text();
         
-        // Determine language for syntax highlighting
-        let language = 'markup';
-        if (fileName.endsWith('.css')) language = 'css';
-        if (fileName.endsWith('.js')) language = 'javascript';
-        
-        // Apply syntax highlighting
-        if (window.highlightCode) {
-            codeContent.innerHTML = highlightCode(code, language);
-        } else {
-            codeContent.textContent = code;
-        }
+        // Display code as plain text (no syntax highlighting)
+        codeContent.textContent = code;
     } catch (error) {
         codeContent.textContent = `// 无法加载文件: ${fileName}\n// 错误: ${error.message}`;
         codeContent.className = 'language-markup';
