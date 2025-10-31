@@ -36,7 +36,7 @@ const projects = [
         id: '8-2',
         name: '8-2 Flex布局',
         description: 'Flex弹性布局实战示例',
-        icon: '📐',
+        icon: '🔲',
         path: '8-2(1)/1.html',
         files: ['1.html']
     },
