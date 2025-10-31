@@ -4,4 +4,16 @@ body{
 	min-width: 320px;
 	margin: 0 auto;
 	font-family: 'Microsoft YaHei', Courier, monospace;
+	color: #000;
+	background: #f2f2f2;
+	overflow-x: hidden;
+	-webkit-tap-highlight-color: transparent;
+}
+ul{
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+div{
+	box-sizing: border-box;
 }
