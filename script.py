@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 import json
 import re
+import sys
 
 
 class ProjectMirrorSync:
@@ -68,22 +69,14 @@ class ProjectMirrorSync:
             return None
 
     def clean_html(self, content):
-        """
-        清理HTML中注入的脚本
-        只保留 <!DOCTYPE> 到 </html> 之间的原始内容
-        """
+        """清理HTML中注入的脚本"""
         try:
             text = content.decode('utf-8', errors='ignore')
-
-            # 方法1: 找到</html>标签，截断后面的内容
             html_end = text.find('</html>')
             if html_end != -1:
-                # 找到</html>标签的结束位置
                 html_end_tag = html_end + len('</html>')
                 text = text[:html_end_tag]
 
-            # 方法2: 移除</body>和</html>之间的注入脚本
-            # 这些脚本通常在</body>后面，</html>前面
             text = re.sub(
                 r'(</body>\s*)<script>.*?livereload.*?</script>\s*(<script>.*?</script>\s*)*\s*(</html>)',
                 r'\1\3',
@@ -91,7 +84,6 @@ class ProjectMirrorSync:
                 flags=re.DOTALL | re.IGNORECASE
             )
 
-            # 方法3: 直接移除LiveReload相关的script标签
             patterns = [
                 r'<script>document\.write\(.*?livereload\.js.*?\)</script>',
                 r'<script>\s*document\.addEventListener\(.*?LiveReloadDisconnect.*?\)</script>',
@@ -103,76 +95,63 @@ class ProjectMirrorSync:
             for pattern in patterns:
                 text = re.sub(pattern, '', text, flags=re.DOTALL | re.IGNORECASE)
 
-            # 清理</html>后面的所有内容
             text = re.sub(r'(</html>).*$', r'\1', text, flags=re.DOTALL)
-
-            # 清理多余的空行
             text = re.sub(r'\n\s*\n\s*\n+', '\n\n', text)
-
-            # 确保以</html>结尾
             text = text.strip()
             if not text.endswith('</html>'):
                 text += '\n</html>'
 
             return text.encode('utf-8')
-
         except Exception as e:
             print(f"    清理HTML失败: {e}")
             return content
 
     def compare_and_download(self, remote_path):
         """对比并下载文件"""
-        url = f"{self.base_url}/{remote_path}"
-        file_icon = self.get_file_icon(remote_path)
-        local_file = self.local_path / remote_path
+        url = f"{self.base_url}/{remote_path}" if remote_path else self.base_url
+        file_icon = self.get_file_icon(remote_path or 'index.html')
+        local_file = self.local_path / (remote_path or 'index.html')
 
-        # 下载远程文件
         remote_content = self.download_file(url)
         if not remote_content:
-            print(f"  ❌ {file_icon} {remote_path}")
+            print(f"  ❌ {file_icon} {remote_path or 'index.html'}")
             self.stats['failed'] += 1
             return False
 
-        # 检查是否是404页面
         text = remote_content.decode('utf-8', errors='ignore')
         if '404' in text and 'Page Not Found' in text:
-            print(f"  ❌ {file_icon} {remote_path} (404)")
+            print(f"  ❌ {file_icon} {remote_path or 'index.html'} (404)")
             self.stats['failed'] += 1
             return False
 
-        # 如果是HTML文件，清理注入的脚本
-        if remote_path.endswith(('.html', '.htm')):
+        if (remote_path or 'index.html').endswith(('.html', '.htm')):
             remote_content = self.clean_html(remote_content)
 
-        # 计算哈希
         remote_hash = self.get_file_hash(remote_content)
         local_hash = self.get_local_file_hash(local_file)
-        stored_hash = self.file_hashes.get(remote_path)
+        stored_hash = self.file_hashes.get(remote_path or 'index.html')
 
-        # 对比
         if local_hash == remote_hash and stored_hash == remote_hash:
-            print(f"  ⏭️  {file_icon} {remote_path} (未变化)")
+            print(f"  ⏭️  {file_icon} {remote_path or 'index.html'} (未变化)")
             self.stats['skipped'] += 1
             return True
 
-        # 保存
         try:
             local_file.parent.mkdir(parents=True, exist_ok=True)
             with open(local_file, 'wb') as f:
                 f.write(remote_content)
 
-            self.file_hashes[remote_path] = remote_hash
+            self.file_hashes[remote_path or 'index.html'] = remote_hash
 
             if local_hash is None:
-                print(f"  ✨ {file_icon} {remote_path} (新文件)")
+                print(f"  ✨ {file_icon} {remote_path or 'index.html'} (新文件)")
             else:
-                print(f"  🔄 {file_icon} {remote_path} (已更新)")
+                print(f"  🔄 {file_icon} {remote_path or 'index.html'} (已更新)")
 
             self.stats['downloaded'] += 1
             return True
-
         except Exception as e:
-            print(f"  ❌ {file_icon} {remote_path} - {e}")
+            print(f"  ❌ {file_icon} {remote_path or 'index.html'} - {e}")
             self.stats['failed'] += 1
             return False
 
@@ -189,18 +168,6 @@ class ProjectMirrorSync:
             return "🔤"
         else:
             return "📦"
-
-    def get_file_structure(self):
-        """
-        ⚠️ 请在这里添加您的项目文件列表
-        """
-        return [
-            'index.html',
-            # 添加更多文件...
-            # 'css/style.css',
-            # 'js/main.js',
-            # 'images/logo.png',
-        ]
 
     def scan_local_files(self):
         files = []
@@ -227,14 +194,9 @@ class ProjectMirrorSync:
             if file_list:
                 print(f"   发现 {len(file_list)} 个文件")
             else:
-                file_list = self.get_file_structure()
+                file_list = ['']
         else:
-            file_list = self.get_file_structure()
-
-        if not file_list:
-            print("❌ 文件列表为空！")
-            print("💡 请在 get_file_structure() 中添加文件")
-            return
+            file_list = ['']
 
         print(f"📋 文件总数: {len(file_list)}\n")
 
@@ -255,7 +217,7 @@ class ProjectMirrorSync:
 
     def test_connection(self):
         print(f"\n🔍 测试连接...")
-        test_url = f"{self.base_url}/index.html"
+        test_url = f"{self.base_url}"
         print(f"   URL: {test_url}")
 
         content = self.download_file(test_url)
@@ -268,7 +230,6 @@ class ProjectMirrorSync:
             print(f"   ❌ 返回404")
             return False
 
-        # 显示清理前后对比
         print(f"   ✅ 连接成功")
         print(f"   原始大小: {len(content)} 字节")
 
@@ -284,7 +245,7 @@ class ProjectMirrorSync:
         print(f"⏰ [{timestamp}] 检查更新")
         print(f"{'=' * 70}")
 
-        index_url = f"{self.base_url}/index.html"
+        index_url = f"{self.base_url}"
         remote_content = self.download_file(index_url)
 
         if not remote_content:
@@ -297,7 +258,6 @@ class ProjectMirrorSync:
             print(f"💡 URL: {index_url}")
             return False
 
-        # 清理后计算哈希
         cleaned_content = self.clean_html(remote_content)
         remote_hash = self.get_file_hash(cleaned_content)
 
@@ -324,9 +284,12 @@ class ProjectMirrorSync:
         if not self.local_path.exists():
             return
 
-        has_content = any(item.name != '.file_hashes.json'
-                          for item in self.local_path.iterdir())
-        if not has_content:
+        try:
+            has_content = any(item.name != '.file_hashes.json'
+                              for item in self.local_path.iterdir())
+            if not has_content:
+                return
+        except:
             return
 
         try:
@@ -339,7 +302,7 @@ class ProjectMirrorSync:
             print(f"   备份失败: {e}")
 
     def start(self):
-        print("=" * 70)
+        print("\n" + "=" * 70)
         print("🚀 项目镜像同步器 (HTML净化版)")
         print("=" * 70)
         print(f"📡 远程: {self.base_url}")
@@ -350,7 +313,7 @@ class ProjectMirrorSync:
         print("=" * 70)
 
         if not self.test_connection():
-            print("\n❌ 连接失败")
+            print("\n❌ 连接失败，请检查URL是否正确")
             return
 
         print("\n🔍 首次同步...")
@@ -372,31 +335,243 @@ class ProjectMirrorSync:
                 print("⏳ 继续监控...\n")
 
 
-def main():
-    # ==================== 配置 ====================
-    REMOTE_URL = "http://172.16.229.130:8848/7-2(1)"
-    LOCAL_PATH = r"C:\Users\Administrator\Documents\HBuilderProjects\7-2(1)-1"
-    CHECK_INTERVAL = 60
-    # =============================================
+# ============================================================================
+# 配置管理函数
+# ============================================================================
 
-    print("\n" + "=" * 70)
-    print("📋 配置")
-    print("=" * 70)
-    print(f"远程: {REMOTE_URL}")
-    print(f"本地: {LOCAL_PATH}")
-    print(f"间隔: {CHECK_INTERVAL}秒")
-    print("=" * 70)
+def load_config():
+    """从文件加载配置"""
+    config_file = Path('sync_config.json')
+    if not config_file.exists():
+        return None
 
     try:
-        confirm = input("\n开始同步？(回车继续 / n取消): ").strip().lower()
-        if confirm == 'n':
+        with open(config_file, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        return config
+    except Exception as e:
+        print(f"⚠️  读取配置失败: {e}")
+        return None
+
+
+def save_config(remote_url, local_path, check_interval):
+    """保存配置到文件"""
+    config = {
+        'remote_url': remote_url,
+        'local_path': str(local_path),
+        'check_interval': check_interval,
+        'created_at': time.strftime('%Y-%m-%d %H:%M:%S')
+    }
+
+    config_file = Path('sync_config.json')
+    try:
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+        print(f"\n💾 配置已保存到: {config_file.resolve()}")
+        return True
+    except Exception as e:
+        print(f"\n⚠️  保存配置失败: {e}")
+        return False
+
+
+def display_config_summary(remote_url, local_path, check_interval):
+    """显示配置摘要"""
+    print("\n" + "=" * 70)
+    print("📋 配置摘要")
+    print("=" * 70)
+    print(f"📡 远程URL: {remote_url}")
+    print(f"💾 本地路径: {local_path}")
+    if check_interval >= 60:
+        print(f"⏱️  检查间隔: {check_interval}秒 ({check_interval // 60}分钟)")
+    else:
+        print(f"⏱️  检查间隔: {check_interval}秒")
+    print("=" * 70)
+
+
+def get_user_input():
+    """交互式获取用户配置"""
+    print("\n" + "=" * 70)
+    print("🎯 项目镜像同步器 - 配置向导")
+    print("=" * 70)
+
+    # 获取远程URL
+    print("\n📡 步骤 1/3: 远程URL配置")
+    print("=" * 70)
+    print("💡 提示:")
+    print("   - 完整的HTTP/HTTPS地址")
+    print("   - 示例: http://192.168.1.100:8080/project/index.html")
+    print("   - 示例: https://example.com/path/to/file.html")
+
+    while True:
+        remote_url = input("\n请输入远程URL: ").strip()
+        if not remote_url:
+            print("❌ URL不能为空，请重新输入")
+            continue
+
+            if not (remote_url.startswith('http://') or remote_url.startswith('https://')):
+                print("❌ URL必须以 http:// 或 https:// 开头")
+                continue
+
+            print(f"✓ 已设置: {remote_url}")
+            break
+
+        # 获取本地路径
+        print("\n💾 步骤 2/3: 本地保存路径")
+        print("=" * 70)
+        print("💡 提示:")
+        print("   - 绝对路径或相对路径")
+        print("   - Windows示例: D:\\Projects\\MyProject")
+        print("   - Linux/Mac示例: /home/user/projects/myproject")
+        print("   - 相对路径示例: ./downloads/project")
+
+        while True:
+            local_path = input("\n请输入本地路径: ").strip()
+            if not local_path:
+                print("❌ 路径不能为空，请重新输入")
+                continue
+
+            # 移除引号（如果用户复制路径时带了引号）
+            local_path = local_path.strip('"').strip("'")
+
+            try:
+                path_obj = Path(local_path)
+                # 显示绝对路径
+                abs_path = path_obj.resolve()
+                print(f"✓ 绝对路径: {abs_path}")
+
+                # 如果路径不存在，询问是否创建
+                if not path_obj.exists():
+                    create = input(f"📁 路径不存在，是否创建? (Y/n): ").strip().lower()
+                    if create == 'n':
+                        print("❌ 已取消，请重新输入路径")
+                        continue
+                    try:
+                        path_obj.mkdir(parents=True, exist_ok=True)
+                        print(f"✓ 已创建目录: {abs_path}")
+                    except Exception as e:
+                        print(f"❌ 创建目录失败: {e}")
+                        continue
+
+                break
+
+            except Exception as e:
+                print(f"❌ 无效的路径: {e}")
+                continue
+
+        # 获取检查间隔
+        print("\n⏱️  步骤 3/3: 检查间隔设置")
+        print("=" * 70)
+        print("💡 提示:")
+        print("   - 单位：秒")
+        print("   - 建议: 30-300秒")
+        print("   - 默认: 60秒")
+
+        while True:
+            interval_input = input("\n请输入检查间隔 (直接回车使用默认60秒): ").strip()
+
+            if not interval_input:
+                check_interval = 60
+                print(f"✓ 使用默认值: {check_interval}秒")
+                break
+
+            try:
+                check_interval = int(interval_input)
+                if check_interval < 5:
+                    print("❌ 间隔太短，最少5秒")
+                    continue
+                if check_interval > 3600:
+                    confirm = input(
+                        f"⚠️  间隔较长({check_interval}秒={check_interval // 60}分钟)，确认? (Y/n): ").strip().lower()
+                    if confirm == 'n':
+                        continue
+                print(f"✓ 已设置: {check_interval}秒")
+                break
+            except ValueError:
+                print("❌ 请输入有效的数字")
+                continue
+
+        return remote_url, local_path, check_interval
+
+    # ============================================================================
+    # 主程序
+    # ============================================================================
+
+    def main():
+        """主函数"""
+        print("\n" + "=" * 70)
+        print("🚀 项目镜像同步器启动")
+        print("=" * 70)
+
+        # 尝试加载已保存的配置
+        saved_config = load_config()
+
+        if saved_config:
+            print("\n📄 检测到已保存的配置:")
+            print("=" * 70)
+            print(f"📡 远程URL: {saved_config.get('remote_url')}")
+            print(f"💾 本地路径: {saved_config.get('local_path')}")
+            print(f"⏱️  检查间隔: {saved_config.get('check_interval')}秒")
+            if 'created_at' in saved_config:
+                print(f"📅 创建时间: {saved_config.get('created_at')}")
+            print("=" * 70)
+
+            choice = input("\n使用已保存的配置? (Y/n/d=删除配置): ").strip().lower()
+
+            if choice == 'd':
+                try:
+                    Path('sync_config.json').unlink()
+                    print("✓ 配置已删除")
+                    remote_url, local_path, check_interval = get_user_input()
+                except Exception as e:
+                    print(f"❌ 删除配置失败: {e}")
+                    return
+            elif choice == 'n':
+                remote_url, local_path, check_interval = get_user_input()
+            else:
+                remote_url = saved_config.get('remote_url')
+                local_path = saved_config.get('local_path')
+                check_interval = saved_config.get('check_interval', 60)
+        else:
+            # 交互式输入
+            remote_url, local_path, check_interval = get_user_input()
+
+            # 询问是否保存配置
+            save_choice = input("\n💾 是否保存此配置供下次使用? (Y/n): ").strip().lower()
+            if save_choice != 'n':
+                save_config(remote_url, local_path, check_interval)
+
+        # 显示最终配置
+        display_config_summary(remote_url, local_path, check_interval)
+
+        # 确认开始
+        try:
+            confirm = input("\n✅ 开始同步? (回车继续 / n取消): ").strip().lower()
+            if confirm == 'n':
+                print("\n👋 已取消")
+                return
+        except KeyboardInterrupt:
+            print("\n\n👋 已取消")
             return
-    except:
-        pass
 
-    syncer = ProjectMirrorSync(REMOTE_URL, LOCAL_PATH, CHECK_INTERVAL)
-    syncer.start()
+        # 创建同步器并启动
+        try:
+            syncer = ProjectMirrorSync(remote_url, local_path, check_interval)
+            syncer.start()
+        except KeyboardInterrupt:
+            print("\n\n👋 已停止")
+        except Exception as e:
+            print(f"\n❌ 运行错误: {e}")
+            import traceback
+            traceback.print_exc()
 
-
-if __name__ == "__main__":
-    main()
+    if __name__ == "__main__":
+        try:
+            main()
+        except KeyboardInterrupt:
+            print("\n\n👋 程序已退出")
+            sys.exit(0)
+        except Exception as e:
+            print(f"\n❌ 致命错误: {e}")
+            import traceback
+            traceback.print_exc()
+            sys.exit(1)
