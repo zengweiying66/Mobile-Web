@@ -1,0 +1,193 @@
+name: Auto Update Project Catalog
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - '**/*.html'
+      - '**/*.css'
+      - '**/*.js'
+      - '!catalog.js'
+      - '!catalog.css'
+      - '!index.html'
+  workflow_dispatch:
+
+jobs:
+  update-catalog:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Scan and update catalog
+        run: |
+          python3 << 'EOF'
+          import os
+          import json
+          import re
+          from pathlib import Path
+          
+          def scan_projects():
+              """扫描项目目录，自动发现项目"""
+              projects = []
+              base_path = Path('.')
+              
+              # 排除的目录
+              exclude_dirs = {'.git', '.github', 'node_modules', '__pycache__'}
+              
+              # 查找所有包含 index.html 或其他 HTML 文件的目录
+              project_dirs = set()
+              
+              for html_file in base_path.rglob('*.html'):
+                  # 跳过根目录的 index.html (这是目录页面)
+                  if html_file.name == 'index.html' and html_file.parent == base_path:
+                      continue
+                  
+                  # 获取项目目录
+                  project_dir = html_file.parent
+                  
+                  # 检查是否在排除列表中
+                  if any(ex in project_dir.parts for ex in exclude_dirs):
+                      continue
+                  
+                  project_dirs.add(project_dir)
+              
+              # 为每个项目目录生成配置
+              for project_dir in sorted(project_dirs):
+                  rel_path = project_dir.relative_to(base_path)
+                  
+                  # 查找项目文件
+                  files = []
+                  for file in project_dir.rglob('*'):
+                      if file.is_file():
+                          file_rel = file.relative_to(project_dir)
+                          files.append(str(file_rel))
+                  
+                  # 查找入口文件
+                  entry_file = None
+                  for name in ['index.html', '1.html', 'main.html']:
+                      candidate = project_dir / name
+                      if candidate.exists():
+                          entry_file = str(rel_path / name)
+                          break
+                  
+                  if not entry_file and files:
+                      # 使用第一个 HTML 文件
+                      html_files = [f for f in files if f.endswith('.html')]
+                      if html_files:
+                          entry_file = str(rel_path / html_files[0])
+                  
+                  if not entry_file:
+                      continue
+                  
+                  # 生成项目配置
+                  project_id = str(rel_path).replace('\\', '/').replace('/', '-').replace('(', '').replace(')', '')
+                  
+                  # 尝试从 HTML 中提取标题
+                  project_name = str(rel_path)
+                  try:
+                      with open(project_dir / (entry_file.split('/')[-1]), 'r', encoding='utf-8') as f:
+                          content = f.read()
+                          title_match = re.search(r'<title>([^<]+)</title>', content, re.IGNORECASE)
+                          if title_match:
+                              project_name = title_match.group(1).strip()
+                  except:
+                      pass
+                  
+                  # 图标映射
+                  icon_map = {
+                      'shop': '🛒',
+                      'cart': '🛍️',
+                      'grid': '📐',
+                      'layout': '📐',
+                      'css': '🎨',
+                      'style': '🎨',
+                  }
+                  
+                  icon = '📦'
+                  for keyword, emoji in icon_map.items():
+                      if keyword in project_id.lower() or keyword in project_name.lower():
+                          icon = emoji
+                          break
+                  
+                  projects.append({
+                      'id': project_id,
+                      'name': project_name,
+                      'description': f'项目目录: {rel_path}',
+                      'icon': icon,
+                      'path': entry_file.replace('\\', '/'),
+                      'files': files[:10]  # 限制文件列表长度
+                  })
+              
+              return projects
+          
+          def update_catalog_js(projects):
+              """更新 catalog.js 文件"""
+              catalog_file = Path('catalog.js')
+              
+              if not catalog_file.exists():
+                  print("catalog.js not found")
+                  return False
+              
+              with open(catalog_file, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              
+              # 生成新的项目配置
+              projects_json = json.dumps(projects, ensure_ascii=False, indent=4)
+              
+              # 替换项目配置部分
+              pattern = r'const projects = \[[\s\S]*?\];'
+              new_config = f'const projects = {projects_json};'
+              
+              new_content = re.sub(pattern, new_config, content)
+              
+              if new_content != content:
+                  with open(catalog_file, 'w', encoding='utf-8') as f:
+                      f.write(new_content)
+                  print(f"Updated catalog.js with {len(projects)} projects")
+                  return True
+              else:
+                  print("No changes needed")
+                  return False
+          
+          # 主程序
+          print("Scanning project directories...")
+          projects = scan_projects()
+          
+          print(f"Found {len(projects)} projects:")
+          for p in projects:
+              print(f"  - {p['name']} ({p['id']})")
+          
+          if projects:
+              changed = update_catalog_js(projects)
+              if changed:
+                  print("\nCatalog updated successfully!")
+              else:
+                  print("\nNo changes needed.")
+          else:
+              print("No projects found!")
+          EOF
+      
+      - name: Check for changes
+        id: check_changes
+        run: |
+          git diff --exit-code catalog.js || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      - name: Commit and push if changed
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git add catalog.js
+          git commit -m "🤖 Auto-update project catalog"
+          git push
