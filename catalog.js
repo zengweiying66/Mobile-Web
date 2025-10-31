@@ -411,7 +411,7 @@ function viewRepository(projectId) {
     const repoPath = repoPathMap[projectId] || projectId;
     
     // Set repository links
-    githubLink.href = `https://github.com/zengweiying66/Mobile-Web/tree/main/${repoPath}`;
+    githubLink.href = `https://github.com/zengweiying66/Mobile-Web/tree/master/${repoPath}`;
     giteeLink.href = `https://gitee.com/zxcvbnm668813/mobile-web/tree/master/${repoPath}`;
     
     modal.classList.add('show');
