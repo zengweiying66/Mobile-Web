@@ -336,17 +336,65 @@ body {
     border-radius: 10px;
     overflow: auto;
     max-height: 60vh;
+    /* Enable smooth scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Enable horizontal scroll with better UX */
+    overflow-x: auto;
+    overflow-y: auto;
+    /* Add scroll indicators */
+    scrollbar-width: thin;
+    scrollbar-color: #667eea #2d2d2d;
+}
+
+.code-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.code-container::-webkit-scrollbar-track {
+    background: #2d2d2d;
+    border-radius: 10px;
+}
+
+.code-container::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 10px;
+}
+
+.code-container::-webkit-scrollbar-thumb:hover {
+    background: #764ba2;
 }
 
 .code-container pre {
     margin: 0;
     padding: 20px;
+    /* Prevent text wrapping for better horizontal scroll */
+    white-space: pre;
+    min-width: max-content;
 }
 
 .code-container code {
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 14px;
     line-height: 1.6;
+    /* Enable text selection */
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+/* Mobile: Enable pinch-to-zoom for code */
+@media (max-width: 768px) {
+    .code-container {
+        /* Allow pinch zoom on mobile */
+        touch-action: pan-x pan-y pinch-zoom;
+    }
+    
+    .code-container code {
+        /* Larger font on mobile for better readability */
+        font-size: 13px;
+    }
 }
 
 /* AI Assistant Widget */
@@ -631,6 +679,61 @@ body {
 
 .gitee-option:hover .repo-option-arrow {
     color: #c71d23;
+}
+
+/* Preview Button Styles */
+.view-preview-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.view-preview-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Preview Modal Option Styles */
+.preview-option {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+}
+
+.preview-option:last-child {
+    margin-bottom: 0;
+}
+
+.preview-option:hover {
+    border-color: #667eea;
+    background: #f8f9ff;
+    transform: translateX(5px);
+}
+
+.preview-option .repo-option-icon svg {
+    fill: #667eea;
+}
+
+.preview-option:hover .repo-option-icon svg {
+    fill: #764ba2;
+}
+
+.preview-option:hover .repo-option-arrow {
+    color: #667eea;
 }
 
 /* 响应式设计 */

@@ -29,8 +29,24 @@ const projects = [
         name: '8-1 项目',
         description: '高级 Web 应用开发项目',
         icon: '🚀',
-        path: '8-1(1)/8-1(1)/zy.html',
+        path: '8-1(1)/zy.html',
         files: ['zy.html']
+    },
+    {
+        id: '8-2',
+        name: '8-2 Flex布局',
+        description: 'Flex弹性布局实战示例',
+        icon: '🔲',
+        path: '8-2(1)/1.html',
+        files: ['1.html']
+    },
+    {
+        id: 'travel',
+        name: '旅游网',
+        description: '移动端旅游网站项目，响应式布局',
+        icon: '✈️',
+        path: 'travel/index.html',
+        files: ['index.html', 'css/index.css', 'css/normalize.css']
     },
     {
         id: 'shopM',
@@ -38,7 +54,7 @@ const projects = [
         description: '移动端电商网站项目，完整的购物商城界面',
         icon: '🛒',
         path: 'shopM/index.html',
-        files: ['index.html', 'css/', 'js/', 'img/']
+        files: ['index.html', 'css/index.css', 'css/base.css', 'js/index.js']
     }
 ];
 
@@ -56,7 +72,11 @@ function renderProjects(filteredProjects = projects) {
         return;
     }
     
-    projectList.innerHTML = filteredProjects.map(project => `
+    projectList.innerHTML = filteredProjects.map(project => {
+        const htmlFiles = project.files.filter(f => f.endsWith('.html'));
+        const hasMultipleHtmlFiles = htmlFiles.length > 1;
+        
+        return `
         <div class="project-card" data-path="${project.path}" tabindex="0" role="button" aria-label="打开 ${project.name}">
             <div class="project-icon">${project.icon}</div>
             <h2 class="project-title">${project.name}</h2>
@@ -64,9 +84,15 @@ function renderProjects(filteredProjects = projects) {
             <button class="view-code-btn" onclick="event.stopPropagation(); viewCode('${project.id}')">
                 📄 查看源码
             </button>
+            ${hasMultipleHtmlFiles ? `
+            <button class="view-preview-btn" onclick="event.stopPropagation(); viewPreview('${project.id}')">
+                打开项目 →
+            </button>
+            ` : `
             <a href="${project.path}" class="project-link">
                 打开项目 →
             </a>
+            `}
             <button class="view-repo-btn" onclick="event.stopPropagation(); viewRepository('${project.id}')">
                 🔗 查看源代码
             </button>
@@ -77,7 +103,8 @@ function renderProjects(filteredProjects = projects) {
                 <span class="project-id">#${project.id}</span>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
     
     // Add event listeners for keyboard and click navigation
     projectList.querySelectorAll('.project-card').forEach(card => {
@@ -236,6 +263,53 @@ function viewCode(projectId) {
     }
     
     modal.classList.add('show');
+    
+    // Enable pinch-to-zoom on mobile for code container
+    enableCodeZoom();
+}
+
+// Enable pinch-to-zoom functionality for code viewer on mobile
+function enableCodeZoom() {
+    const codeContainer = document.querySelector('.code-container');
+    if (!codeContainer) return;
+    
+    let scale = 1;
+    let lastDistance = 0;
+    
+    codeContainer.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 2) {
+            lastDistance = getDistance(e.touches[0], e.touches[1]);
+        }
+    }, { passive: true });
+    
+    codeContainer.addEventListener('touchmove', function(e) {
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            const currentDistance = getDistance(e.touches[0], e.touches[1]);
+            if (lastDistance > 0) {
+                const delta = currentDistance - lastDistance;
+                scale += delta * 0.01;
+                scale = Math.max(0.5, Math.min(scale, 3)); // Limit zoom between 50% and 300%
+                
+                const code = codeContainer.querySelector('code');
+                if (code) {
+                    const baseFontSize = window.innerWidth <= 768 ? 13 : 14;
+                    code.style.fontSize = (baseFontSize * scale) + 'px';
+                }
+            }
+            lastDistance = currentDistance;
+        }
+    }, { passive: false });
+    
+    codeContainer.addEventListener('touchend', function() {
+        lastDistance = 0;
+    }, { passive: true });
+    
+    function getDistance(touch1, touch2) {
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
 }
 
 async function loadFile(projectId, fileName) {
@@ -374,7 +448,9 @@ const repoPathMap = {
     '7-1': '7-1(1)',
     '7-2': '7-2(1)',
     '8-1': '8-1(1)',
-    'shopM': 'shopM'
+    '8-2': '8-2(1)',
+    'shopM': 'shopM',
+    'travel': 'travel'
 };
 
 // View repository function
@@ -393,7 +469,7 @@ function viewRepository(projectId) {
     const repoPath = repoPathMap[projectId] || projectId;
     
     // Set repository links
-    githubLink.href = `https://github.com/zengweiying66/Mobile-Web/tree/main/${repoPath}`;
+    githubLink.href = `https://github.com/zengweiying66/Mobile-Web/tree/master/${repoPath}`;
     giteeLink.href = `https://gitee.com/zxcvbnm668813/mobile-web/tree/master/${repoPath}`;
     
     modal.classList.add('show');
@@ -404,7 +480,47 @@ function closeRepoModal() {
     modal.classList.remove('show');
 }
 
+// View preview function - shows modal with HTML pages
+function viewPreview(projectId) {
+    const modal = document.getElementById('previewModal');
+    const modalTitle = document.getElementById('previewModalTitle');
+    const previewOptions = document.getElementById('previewOptions');
+    
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    modalTitle.textContent = `${project.name} - 选择预览页面`;
+    
+    const htmlFiles = project.files.filter(f => f.endsWith('.html'));
+    const basePath = project.path.substring(0, project.path.lastIndexOf('/') + 1);
+    
+    // Build preview options HTML
+    previewOptions.innerHTML = htmlFiles.map(file => `
+        <a href="${basePath}${file}" class="repo-option preview-option">
+            <div class="repo-option-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+            </div>
+            <div class="repo-option-content">
+                <h3>${file}</h3>
+                <p>预览此页面</p>
+            </div>
+            <div class="repo-option-arrow">→</div>
+        </a>
+    `).join('');
+    
+    modal.classList.add('show');
+}
+
+function closePreviewModal() {
+    const modal = document.getElementById('previewModal');
+    modal.classList.remove('show');
+}
+
 // Make functions global
 window.viewCode = viewCode;
 window.viewRepository = viewRepository;
 window.closeRepoModal = closeRepoModal;
+window.viewPreview = viewPreview;
+window.closePreviewModal = closePreviewModal;
