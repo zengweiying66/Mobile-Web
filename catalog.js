@@ -46,7 +46,7 @@ const projects = [
         description: '移动端旅游网站项目，响应式布局',
         icon: '✈️',
         path: 'travel/index.html',
-        files: ['index.html', 'css/', 'images/']
+        files: ['index.html', 'css/index.css', 'css/normalize.css']
     },
     {
         id: 'shopM',
@@ -54,7 +54,7 @@ const projects = [
         description: '移动端电商网站项目，完整的购物商城界面',
         icon: '🛒',
         path: 'shopM/index.html',
-        files: ['index.html', 'css/', 'js/', 'img/']
+        files: ['index.html', 'css/index.css', 'css/base.css', 'js/index.js']
     }
 ];
 
@@ -72,7 +72,11 @@ function renderProjects(filteredProjects = projects) {
         return;
     }
     
-    projectList.innerHTML = filteredProjects.map(project => `
+    projectList.innerHTML = filteredProjects.map(project => {
+        const htmlFiles = project.files.filter(f => f.endsWith('.html'));
+        const hasMultipleHtmlFiles = htmlFiles.length > 1;
+        
+        return `
         <div class="project-card" data-path="${project.path}" tabindex="0" role="button" aria-label="打开 ${project.name}">
             <div class="project-icon">${project.icon}</div>
             <h2 class="project-title">${project.name}</h2>
@@ -80,9 +84,24 @@ function renderProjects(filteredProjects = projects) {
             <button class="view-code-btn" onclick="event.stopPropagation(); viewCode('${project.id}')">
                 📄 查看源码
             </button>
+            ${hasMultipleHtmlFiles ? `
+            <div class="preview-menu" onclick="event.stopPropagation()">
+                <button class="preview-btn" onclick="togglePreviewMenu('${project.id}')">
+                    👁️ 预览页面 ▼
+                </button>
+                <div class="preview-dropdown" id="preview-${project.id}" style="display: none;">
+                    ${htmlFiles.map(file => `
+                        <a href="${project.path.substring(0, project.path.lastIndexOf('/') + 1)}${file}" class="preview-item">
+                            ${file}
+                        </a>
+                    `).join('')}
+                </div>
+            </div>
+            ` : `
             <a href="${project.path}" class="project-link">
                 打开项目 →
             </a>
+            `}
             <button class="view-repo-btn" onclick="event.stopPropagation(); viewRepository('${project.id}')">
                 🔗 查看源代码
             </button>
@@ -93,7 +112,8 @@ function renderProjects(filteredProjects = projects) {
                 <span class="project-id">#${project.id}</span>
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
     
     // Add event listeners for keyboard and click navigation
     projectList.querySelectorAll('.project-card').forEach(card => {
@@ -413,7 +433,33 @@ function closeRepoModal() {
     modal.classList.remove('show');
 }
 
+// Toggle preview menu dropdown
+function togglePreviewMenu(projectId) {
+    const dropdown = document.getElementById(`preview-${projectId}`);
+    const allDropdowns = document.querySelectorAll('.preview-dropdown');
+    
+    // Close all other dropdowns
+    allDropdowns.forEach(d => {
+        if (d.id !== `preview-${projectId}`) {
+            d.style.display = 'none';
+        }
+    });
+    
+    // Toggle current dropdown
+    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+}
+
+// Close preview menus when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.preview-menu')) {
+        document.querySelectorAll('.preview-dropdown').forEach(d => {
+            d.style.display = 'none';
+        });
+    }
+});
+
 // Make functions global
 window.viewCode = viewCode;
 window.viewRepository = viewRepository;
 window.closeRepoModal = closeRepoModal;
+window.togglePreviewMenu = togglePreviewMenu;

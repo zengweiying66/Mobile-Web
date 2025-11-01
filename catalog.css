@@ -633,6 +633,64 @@ body {
     color: #c71d23;
 }
 
+/* Preview Menu Styles */
+.preview-menu {
+    position: relative;
+    display: inline-block;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.preview-btn {
+    width: 100%;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.preview-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.preview-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 10px;
+    margin-top: 5px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    overflow: hidden;
+}
+
+.preview-item {
+    display: block;
+    padding: 10px 15px;
+    color: #667eea;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #eee;
+}
+
+.preview-item:last-child {
+    border-bottom: none;
+}
+
+.preview-item:hover {
+    background: #667eea;
+    color: white;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .header h1 {
