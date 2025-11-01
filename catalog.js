@@ -86,7 +86,7 @@ function renderProjects(filteredProjects = projects) {
             </button>
             ${hasMultipleHtmlFiles ? `
             <button class="view-preview-btn" onclick="event.stopPropagation(); viewPreview('${project.id}')">
-                👁️ 预览页面
+                打开项目 →
             </button>
             ` : `
             <a href="${project.path}" class="project-link">
@@ -263,6 +263,53 @@ function viewCode(projectId) {
     }
     
     modal.classList.add('show');
+    
+    // Enable pinch-to-zoom on mobile for code container
+    enableCodeZoom();
+}
+
+// Enable pinch-to-zoom functionality for code viewer on mobile
+function enableCodeZoom() {
+    const codeContainer = document.querySelector('.code-container');
+    if (!codeContainer) return;
+    
+    let scale = 1;
+    let lastDistance = 0;
+    
+    codeContainer.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 2) {
+            lastDistance = getDistance(e.touches[0], e.touches[1]);
+        }
+    }, { passive: true });
+    
+    codeContainer.addEventListener('touchmove', function(e) {
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            const currentDistance = getDistance(e.touches[0], e.touches[1]);
+            if (lastDistance > 0) {
+                const delta = currentDistance - lastDistance;
+                scale += delta * 0.01;
+                scale = Math.max(0.5, Math.min(scale, 3)); // Limit zoom between 50% and 300%
+                
+                const code = codeContainer.querySelector('code');
+                if (code) {
+                    const baseFontSize = window.innerWidth <= 768 ? 13 : 14;
+                    code.style.fontSize = (baseFontSize * scale) + 'px';
+                }
+            }
+            lastDistance = currentDistance;
+        }
+    }, { passive: false });
+    
+    codeContainer.addEventListener('touchend', function() {
+        lastDistance = 0;
+    }, { passive: true });
+    
+    function getDistance(touch1, touch2) {
+        const dx = touch1.clientX - touch2.clientX;
+        const dy = touch1.clientY - touch2.clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
 }
 
 async function loadFile(projectId, fileName) {
