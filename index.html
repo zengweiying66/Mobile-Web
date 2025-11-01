@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>移动端Web项目目录</title>
     <link rel="stylesheet" href="catalog.css">
+    <link rel="stylesheet" href="lib/simple-highlight.css">
 </head>
 <body>
     <div class="container">
@@ -97,6 +98,22 @@
         </div>
     </div>
 
+    <!-- Preview Pages Modal -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content repo-modal-content">
+            <div class="modal-header">
+                <h2 id="previewModalTitle">选择预览页面</h2>
+                <span class="close" onclick="closePreviewModal()">&times;</span>
+            </div>
+            <div class="modal-body repo-modal-body">
+                <p class="repo-modal-description">请选择要预览的页面：</p>
+                <div class="repo-options" id="previewOptions">
+                    <!-- Dynamic content will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- AI Assistant Widget (Optional) -->
     <div id="aiAssistant" class="ai-widget">
         <button id="aiToggle" class="ai-toggle" title="AI 助手">
@@ -115,6 +132,7 @@
         </div>
     </div>
 
+    <script src="lib/simple-highlight.js"></script>
     <script src="catalog.js"></script>
 </body>
 </html>

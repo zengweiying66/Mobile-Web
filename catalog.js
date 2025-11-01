@@ -85,18 +85,9 @@ function renderProjects(filteredProjects = projects) {
                 📄 查看源码
             </button>
             ${hasMultipleHtmlFiles ? `
-            <div class="preview-menu" onclick="event.stopPropagation()">
-                <button class="preview-btn" onclick="togglePreviewMenu('${project.id}')">
-                    👁️ 预览页面 ▼
-                </button>
-                <div class="preview-dropdown" id="preview-${project.id}" style="display: none;">
-                    ${htmlFiles.map(file => `
-                        <a href="${project.path.substring(0, project.path.lastIndexOf('/') + 1)}${file}" class="preview-item">
-                            ${file}
-                        </a>
-                    `).join('')}
-                </div>
-            </div>
+            <button class="view-preview-btn" onclick="event.stopPropagation(); viewPreview('${project.id}')">
+                👁️ 预览页面
+            </button>
             ` : `
             <a href="${project.path}" class="project-link">
                 打开项目 →
@@ -297,8 +288,17 @@ async function loadFile(projectId, fileName) {
         
         const code = await response.text();
         
-        // Display code as plain text (no syntax highlighting)
-        codeContent.textContent = code;
+        // Determine language for syntax highlighting
+        let language = 'markup';
+        if (fileName.endsWith('.css')) language = 'css';
+        if (fileName.endsWith('.js')) language = 'javascript';
+        
+        // Apply syntax highlighting
+        if (window.highlightCode) {
+            codeContent.innerHTML = highlightCode(code, language);
+        } else {
+            codeContent.textContent = code;
+        }
     } catch (error) {
         codeContent.textContent = `// 无法加载文件: ${fileName}\n// 错误: ${error.message}`;
         codeContent.className = 'language-markup';
@@ -433,33 +433,47 @@ function closeRepoModal() {
     modal.classList.remove('show');
 }
 
-// Toggle preview menu dropdown
-function togglePreviewMenu(projectId) {
-    const dropdown = document.getElementById(`preview-${projectId}`);
-    const allDropdowns = document.querySelectorAll('.preview-dropdown');
+// View preview function - shows modal with HTML pages
+function viewPreview(projectId) {
+    const modal = document.getElementById('previewModal');
+    const modalTitle = document.getElementById('previewModalTitle');
+    const previewOptions = document.getElementById('previewOptions');
     
-    // Close all other dropdowns
-    allDropdowns.forEach(d => {
-        if (d.id !== `preview-${projectId}`) {
-            d.style.display = 'none';
-        }
-    });
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
     
-    // Toggle current dropdown
-    dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    modalTitle.textContent = `${project.name} - 选择预览页面`;
+    
+    const htmlFiles = project.files.filter(f => f.endsWith('.html'));
+    const basePath = project.path.substring(0, project.path.lastIndexOf('/') + 1);
+    
+    // Build preview options HTML
+    previewOptions.innerHTML = htmlFiles.map(file => `
+        <a href="${basePath}${file}" class="repo-option preview-option">
+            <div class="repo-option-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+            </div>
+            <div class="repo-option-content">
+                <h3>${file}</h3>
+                <p>预览此页面</p>
+            </div>
+            <div class="repo-option-arrow">→</div>
+        </a>
+    `).join('');
+    
+    modal.classList.add('show');
 }
 
-// Close preview menus when clicking outside
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.preview-menu')) {
-        document.querySelectorAll('.preview-dropdown').forEach(d => {
-            d.style.display = 'none';
-        });
-    }
-});
+function closePreviewModal() {
+    const modal = document.getElementById('previewModal');
+    modal.classList.remove('show');
+}
 
 // Make functions global
 window.viewCode = viewCode;
 window.viewRepository = viewRepository;
 window.closeRepoModal = closeRepoModal;
-window.togglePreviewMenu = togglePreviewMenu;
+window.viewPreview = viewPreview;
+window.closePreviewModal = closePreviewModal;
