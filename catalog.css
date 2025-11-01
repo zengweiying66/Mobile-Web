@@ -685,7 +685,6 @@ body {
 .view-preview-btn {
     display: inline-block;
     margin-top: 10px;
-    width: 100%;
     padding: 8px 20px;
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
