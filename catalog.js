@@ -1,4 +1,7 @@
 // 项目配置 - 自动识别所有项目目录
+// Code viewer constants
+const CODE_BASE_LINE_HEIGHT = 1.6;
+
 const projects = [
     {
         id: '6-2',
@@ -308,9 +311,8 @@ function enableCodeZoom() {
                 const code = codeContainer.querySelector('code');
                 if (code) {
                     const baseFontSize = window.innerWidth <= 768 ? 13 : 14;
-                    const baseLineHeight = 1.6;
                     code.style.fontSize = (baseFontSize * scale) + 'px';
-                    code.style.lineHeight = baseLineHeight.toString();
+                    code.style.lineHeight = CODE_BASE_LINE_HEIGHT.toString();
                 }
             }
             lastDistance = currentDistance;
