@@ -6,7 +6,8 @@ const projects = [
         description: 'HTML + CSS 基础项目，包含多个页面示例',
         icon: '📄',
         path: '6-2/1.html',
-        files: ['1.html', '2.html', '1.css', '2.css']
+        files: ['1.html', '2.html', '1.css', '2.css'],
+        lastUpdated: '2025-11-02'
     },
     {
         id: '7-1',
@@ -14,7 +15,8 @@ const projects = [
         description: '实现简单的栅格系统，响应式布局示例',
         icon: '📐',
         path: '7-1(1)/index.html',
-        files: ['index.html', 'zy.html']
+        files: ['index.html', 'zy.html'],
+        lastUpdated: '2025-11-02'
     },
     {
         id: '7-2',
@@ -22,7 +24,8 @@ const projects = [
         description: 'Web 开发进阶项目示例',
         icon: '🎨',
         path: '7-2(1)/index.html',
-        files: ['index.html', '2.html', '3.html']
+        files: ['index.html', '2.html', '3.html'],
+        lastUpdated: '2025-11-02'
     },
     {
         id: '8-1',
@@ -30,7 +33,8 @@ const projects = [
         description: '高级 Web 应用开发项目',
         icon: '🚀',
         path: '8-1(1)/zy.html',
-        files: ['zy.html']
+        files: ['zy.html'],
+        lastUpdated: '2025-11-02'
     },
     {
         id: '8-2',
@@ -38,7 +42,8 @@ const projects = [
         description: 'Flex弹性布局实战示例',
         icon: '🔲',
         path: '8-2(1)/1.html',
-        files: ['1.html']
+        files: ['1.html'],
+        lastUpdated: '2025-11-02'
     },
     {
         id: 'travel',
@@ -46,7 +51,8 @@ const projects = [
         description: '移动端旅游网站项目，响应式布局',
         icon: '✈️',
         path: 'travel/index.html',
-        files: ['index.html', 'css/index.css', 'css/normalize.css']
+        files: ['index.html', 'css/index.css', 'css/normalize.css'],
+        lastUpdated: '2025-11-02'
     },
     {
         id: 'shopM',
@@ -54,7 +60,8 @@ const projects = [
         description: '移动端电商网站项目，完整的购物商城界面',
         icon: '🛒',
         path: 'shopM/index.html',
-        files: ['index.html', 'css/index.css', 'css/base.css', 'js/index.js']
+        files: ['index.html', 'css/index.css', 'css/base.css', 'js/index.js'],
+        lastUpdated: '2025-11-02'
     }
 ];
 
@@ -102,6 +109,13 @@ function renderProjects(filteredProjects = projects) {
                 </span>
                 <span class="project-id">#${project.id}</span>
             </div>
+            ${project.lastUpdated ? `
+            <div class="project-updated">
+                <span class="update-time">
+                    🕒 更新于 ${project.lastUpdated}
+                </span>
+            </div>
+            ` : ''}
         </div>
         `;
     }).join('');
@@ -294,7 +308,9 @@ function enableCodeZoom() {
                 const code = codeContainer.querySelector('code');
                 if (code) {
                     const baseFontSize = window.innerWidth <= 768 ? 13 : 14;
+                    const baseLineHeight = 1.6;
                     code.style.fontSize = (baseFontSize * scale) + 'px';
+                    code.style.lineHeight = baseLineHeight.toString();
                 }
             }
             lastDistance = currentDistance;
