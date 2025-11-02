@@ -10,7 +10,7 @@ const projects = [
         icon: '📄',
         path: '6-2/1.html',
         files: ['1.html', '2.html', '1.css', '2.css'],
-        lastUpdated: '2025-11-02'
+        lastUpdated: '2025-10-31'
     },
     {
         id: '7-1',
@@ -19,7 +19,7 @@ const projects = [
         icon: '📐',
         path: '7-1(1)/index.html',
         files: ['index.html', 'zy.html'],
-        lastUpdated: '2025-11-02'
+        lastUpdated: '2025-10-31'
     },
     {
         id: '7-2',
@@ -28,7 +28,7 @@ const projects = [
         icon: '🎨',
         path: '7-2(1)/index.html',
         files: ['index.html', '2.html', '3.html'],
-        lastUpdated: '2025-11-02'
+        lastUpdated: '2025-10-31'
     },
     {
         id: '8-1',
@@ -37,7 +37,7 @@ const projects = [
         icon: '🚀',
         path: '8-1(1)/zy.html',
         files: ['zy.html'],
-        lastUpdated: '2025-11-02'
+        lastUpdated: '2025-10-31'
     },
     {
         id: '8-2',
@@ -46,7 +46,7 @@ const projects = [
         icon: '🔲',
         path: '8-2(1)/1.html',
         files: ['1.html'],
-        lastUpdated: '2025-11-02'
+        lastUpdated: '2025-10-31'
     },
     {
         id: 'travel',
@@ -55,7 +55,7 @@ const projects = [
         icon: '✈️',
         path: 'travel/index.html',
         files: ['index.html', 'css/index.css', 'css/normalize.css'],
-        lastUpdated: '2025-11-02'
+        lastUpdated: '2025-10-21'
     },
     {
         id: 'shopM',
@@ -64,7 +64,7 @@ const projects = [
         icon: '🛒',
         path: 'shopM/index.html',
         files: ['index.html', 'css/index.css', 'css/base.css', 'js/index.js'],
-        lastUpdated: '2025-11-02'
+        lastUpdated: '2025-10-21'
     }
 ];
 
